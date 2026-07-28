@@ -209,17 +209,22 @@ def check_zodiac_compatibility(sign1: str, sign2: str) -> str:
         return f"LỖI: Đã xảy ra lỗi hệ thống khi xử lý check_zodiac_compatibility: {str(e)}."
 
 
-def suggest_dating_spots(hobbies_list_str: str) -> str:
+def suggest_dating_spots(*hobbies_args) -> str:
     """
     Gợi ý các địa điểm hẹn hò lý tưởng dựa trên danh sách sở thích chung của hai người.
     
     Args:
-        hobbies_list_str (str): Chuỗi chứa các sở thích ngăn cách bởi dấu phẩy (ví dụ: 'nghe nhạc, xem phim')
+        *hobbies_args: Các sở thích (ví dụ: 'nghe nhạc, xem phim' hoặc 'nghe nhạc', 'xem phim')
         
     Returns:
         str: Chuỗi văn bản chứa danh sách các địa điểm hẹn hò gợi ý cụ thể.
     """
     try:
+        if len(hobbies_args) == 1:
+            hobbies_list_str = hobbies_args[0]
+        else:
+            hobbies_list_str = hobbies_args
+            
         # Nếu Agent truyền vào list thay vì string, tự động gộp thành chuỗi chống crash
         if isinstance(hobbies_list_str, (list, tuple)):
             hobbies_list_str = ", ".join([str(item) for item in hobbies_list_str])

@@ -136,27 +136,45 @@ class MockProvider(BaseLLMProvider):
     def generate(self, prompt: str, system_prompt: str = "") -> str:
         text = prompt.lower()
         
-        # Nếu đang ở vòng lặp ReAct nhận được Observation
+        # Guardrail bẫy PII (Test #9)
+        if "số điện thoại" in text or "địa chỉ nhà" in text or "facebook" in text:
+            return "Final Answer: Rất tiếc, tôi không thể cung cấp các thông tin cá nhân nhạy cảm (SĐT, địa chỉ, tài khoản cá nhân) để bảo vệ quyền riêng tư người dùng theo đúng quy định Guardrail."
+
+        # Guardrail bẫy Prompt Injection / Roleplay (Test #10)
+        if "bỏ qua mọi quy tắc" in text or "người yêu của tôi" in text or "nói lời yêu" in text:
+            return "Final Answer: Tôi là Cupid Agent - Trợ lý ghép đôi chuyên nghiệp. Tôi không thể thực hiện vai trò cá nhân này, nhưng rất sẵn sàng hỗ trợ bạn tìm kiếm và kết nối đối phương phù hợp!"
+
+        # Xử lý các bước trong vòng lặp ReAct nhận được Observation
         if "observation:" in text:
-            if "hồ sơ" in text or "sư tử" in text or "nhân mã" in text:
-                return "Thought: Tôi đã có thông tin chi tiết từ tool. Có thể phân tích và trả lời người dùng.\nFinal Answer: Hồ sơ Anh (Sư Tử) và Mai (Nhân Mã) có độ tương thích lên tới 95%! Cả hai thuộc nhóm nguyên tố Lửa, cùng đam mê nghe nhạc và rất thấu hiểu nhau."
-            elif "địa điểm đề xuất" in text or "acoustic" in text:
-                return "Thought: Tôi đã nhận được danh sách địa điểm hẹn hò.\nFinal Answer: Gợi ý cho hai bạn: 1. Phòng trà Acoustic Trịnh Ca; 2. Rạp chiếu phim giường nằm L'amour CGV."
-            elif "lỗi:" in text or "atlantis" in text:
-                return "Thought: Công cụ báo lỗi do địa điểm/thông tin không hợp lệ.\nFinal Answer: Rất tiếc, tôi không tìm thấy thông tin hợp lệ để thực hiện yêu cầu này."
-            return "Thought: Đã nhận được Observation.\nFinal Answer: Tôi đã có đủ thông tin để trả lời cho bạn."
+            if "lỗ i:" in text or "lỗi:" in text or "atlantis" in text:
+                return "Thought: Công cụ báo lỗi do dữ liệu không hợp lệ.\nFinal Answer: Không tìm thấy thông tin phù hợp với yêu cầu của bạn."
+            elif "get_user_profile" in text and "linh" in text:
+                return "Thought: Đã có hồ sơ Linh, giờ tính độ tương thích với ID #2.\nAction: check_zodiac_compatibility['Sư Tử', 'Kim Ngưu']"
+            elif "get_user_profile" in text and "mai" in text:
+                return "Thought: Đã có hồ sơ Mai, giờ gợi ý địa điểm hẹn hò.\nAction: suggest_dating_spots['đọc sách, nghe nhạc']"
+            elif "sư tử" in text or "nhân mã" in text or "kim ngưu" in text or "compatibility" in text:
+                return "Thought: Tôi đã có thông tin chi tiết tương thích.\nFinal Answer: Điểm tương thích giữa 2 hồ sơ được đánh giá rất cao, cùng nhiều điểm chung về phong cách sống và năng lượng."
+            elif "địa điểm đề xuất" in text or "acoustic" in text or "cà phê" in text:
+                return "Thought: Đã nhận được danh sách địa điểm.\nFinal Answer: Gợi ý buổi hẹn hò hoàn hảo: 1. Cư Xá Cà Phê; 2. Thưởng thức nhạc tại Acoustic Trịnh Ca."
+            return "Thought: Đã nhận được Observation.\nFinal Answer: Cupid Agent đã hoàn thành tổng hợp thông tin cho bạn!"
 
         # Xử lý các câu hỏi mở đầu (Initial User Queries)
-        if "anh" in text and "hồ sơ" in text:
-            return "Thought: Cần tra cứu hồ sơ người dùng tên Anh.\nAction: get_user_profile['Anh']"
-        elif "mai" in text or ("sư tử" in text and "nhân mã" in text) or "tương thích" in text:
+        if "atlantis" in text or "hack atm" in text:
+            return "Thought: Cần tra cứu hồ sơ người dùng tên Atlantis.\nAction: get_user_profile['Atlantis']"
+        elif "hợp với tôi và gợi ý hoạt động" in text or "đọc sách và âm nhạc" in text:
+            return "Thought: Tra cứu hồ sơ Mai trước.\nAction: get_user_profile['Mai']"
+        elif "tính điểm tương thích của tôi với hồ sơ id #2" in text or "tính điểm tương thích" in text:
+            return "Thought: Tra cứu hồ sơ Linh trước.\nAction: get_user_profile['Linh']"
+        elif "id #1 và id #3" in text or "hồ sơ id #1" in text:
             return "Thought: Cần kiểm tra độ tương thích giữa cung Sư Tử và Nhân Mã.\nAction: check_zodiac_compatibility['Sư Tử', 'Nhân Mã']"
-        elif "địa điểm" in text or "hẹn hò" in text or "nghe nhạc" in text:
-            return "Thought: Cần tra cứu địa điểm hẹn hò dựa trên sở thích.\nAction: suggest_dating_spots['nghe nhạc, xem phim']"
-        elif "tình yêu là gì" in text or "love language" in text or "phong cách yêu" in text:
+        elif "hướng nội" in text or "đọc sách và nấu ăn" in text:
+            return "Thought: Cần tra cứu hồ sơ bạn Mai hợp tính cách hướng nội.\nAction: get_user_profile['Mai']"
+        elif "tình yêu là gì" in text:
             return "Tình yêu là sự thấu hiểu, tôn trọng và đồng hành cùng nhau. Để duy trì mối quan hệ lâu dài, cần chân thành, biết lắng nghe và tạo những khoảnh khắc lãng mạn bên nhau."
-        elif "atlantis" in text or "hack atm" in text:
-            return "Thought: Thông tin không hợp lệ, thử tra cứu hồ sơ.\nAction: get_user_profile['Atlantis']"
+        elif "love language" in text or "phong cách yêu" in text:
+            return "5 Phong cách yêu (Love Languages): 1. Words of Affirmation; 2. Acts of Service; 3. Receiving Gifts; 4. Quality Time; 5. Physical Touch."
+        elif "bí quyết" in text and "hẹn hò" in text:
+            return "3 Bí quyết hẹn hò đầu tiên: 1. Trang phục gọn gàng; 2. Lắng nghe chân thành; 3. Chọn địa điểm thoải mái, không quá ồn ào."
             
         return "Thought: Tôi đã nhận được yêu cầu.\nFinal Answer: Cupid Agent sẵn sàng đồng hành tư vấn tình yêu cùng bạn!"
 
