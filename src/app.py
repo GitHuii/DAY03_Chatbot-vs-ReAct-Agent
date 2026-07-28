@@ -73,29 +73,30 @@ def run_baseline_chatbot(user_query: str, provider):
 
 def run_react_agent(user_query: str, provider):
     """
-    Dựng vòng lặp ReAct Agent (Cấp 3: Thought -> Action -> Observation) có Guardrails.
+    Dựng vòng lặp ReAct Agent (Cấp 3: Thought -> Action -> Observation) có Guardrails hoàn chỉnh.
     """
     print(f"\n🧠 [CUPID REACT AGENT] Câu hỏi: {user_query}")
     
     conversation_history = f"User: {user_query}"
     step = 0
     final_response = ""
+    last_action = None
     
     while step < MAX_ITERATIONS:
         step += 1
         print(f"\n--- 🔄 Vòng lặp ReAct (Step {step}/{MAX_ITERATIONS}) ---")
         
-        # 1. Gọi LLM sinh suy luận (Thought & Action)
+        # 1. LLM Suy luận sinh Thought & Action
         llm_output = provider.generate(conversation_history, system_prompt=REACT_SYSTEM_PROMPT)
         print(f"🤖 Agent Response:\n{llm_output}")
         
-        # 2. Kiểm tra nếu Agent đã đưa ra Final Answer
+        # 2. Kiểm tra câu trả lời cuối cùng (Final Answer)
         if "Final Answer:" in llm_output:
             final_response = llm_output.split("Final Answer:")[-1].strip()
             print(f"\n🎯 [KẾT QUẢ CUỐI CÙNG]: {final_response}")
             break
             
-        # 3. Bóc tách Action và thực thi Tool
+        # 3. Trích xuất Action dòng
         action_line = None
         for line in llm_output.split("\n"):
             if line.strip().startswith("Action:"):
@@ -104,30 +105,36 @@ def run_react_agent(user_query: str, provider):
                 
         if action_line:
             tool_name, args = parse_action(action_line)
+            
+            # Tránh lặp vô tận cùng 1 Action
+            if action_line == last_action:
+                print(f"🛡️ GUARDRAIL: Phát hiện lặp lại Tool '{tool_name}'. Tự động dừng vòng lặp!")
+                final_response = "Phát hiện vòng lặp vô hạn khi thực thi công cụ. Ngắt lặp an toàn."
+                break
+            last_action = action_line
+            
             print(f"🛠️ Thực thi Tool: {tool_name} với tham số: {args}")
             
             if tool_name in AVAILABLE_TOOLS:
                 tool_func = AVAILABLE_TOOLS[tool_name]
                 try:
-                    # Tránh crash app nếu truyền sai số lượng tham số
                     obs = tool_func(*args)
                 except Exception as e:
                     obs = f"LỖI THỰC THI TOOL '{tool_name}': {str(e)}"
             else:
-                obs = f"LỖI: Tool '{tool_name}' không tồn tại trong registry hệ thống."
+                obs = f"LỖI: Tool '{tool_name}' không tồn tại trong hệ thống."
                 
             print(f"👁️ Observation: {obs}")
-            
-            # Cập nhật lịch sử hội thoại cho bước tiếp theo
             conversation_history += f"\n{llm_output}\nObservation: {obs}"
         else:
-            # Nếu LLM không sinh Action rõ ràng, coi như đã xong
+            # Nếu LLM không gọi Action nào khác, lấy toàn bộ text làm câu trả lời
             final_response = llm_output
+            print(f"\n🎯 [KẾT QUẢ CUỐI CÙNG]: {final_response}")
             break
             
     if step >= MAX_ITERATIONS and not final_response:
-        print(f"\n🛡️ GUARDRAIL TRIGGERED: Đã đạt giới hạn tối đa {MAX_ITERATIONS} bước. Ngắt lặp an toàn!")
-        final_response = "Tôi đã vượt quá số bước suy luận tối đa mà chưa hoàn thành. Vui lòng thử lại với câu hỏi cụ thể hơn."
+        print(f"\n🛡️ GUARDRAIL TRIGGERED: Đã đạt giới hạn tối đa {MAX_ITERATIONS} bước suy luận. Ngắt lặp an toàn!")
+        final_response = "Đã đạt giới hạn tối đa số bước suy luận (MAX_ITERATIONS). Tự động dừng vòng lặp để đảm bảo an toàn."
         
     return final_response
 
