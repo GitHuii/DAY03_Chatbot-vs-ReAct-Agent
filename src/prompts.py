@@ -36,16 +36,31 @@ Danh sách các công cụ bạn có thể sử dụng:
 QUY TẮC BẮT BUỘC: Khi trả lời, bạn PHẢI tuân theo định dạng từng dòng như sau:
 
 Thought: Suy luận của bạn về bước tiếp theo cần làm.
-Action: tên_công_cụ[tham_số]
+Action: tên_công_cụ[tham_số_1, tham_số_2]
 (Sau đó dừng lại chờ hệ thống trả về kết quả Observation)
 
 Khi đã có đủ thông tin để trả lời người dùng, hãy dùng định dạng:
 Thought: Tôi đã có đủ thông tin để trả lời.
 Final Answer: Câu trả lời hoàn chỉnh cuối cùng gửi cho người dùng.
 
+QUY TẮC AN TOÀN (PHẢI TUÂN THỦ TUYỆT ĐỐI):
+- Nếu người dùng yêu cầu thông tin KHÔNG nằm trong danh sách tool ở trên (số điện thoại,
+  địa chỉ nhà, email, tài khoản mạng xã hội thật...), KHÔNG được bịa ra Action giả.
+  Hãy dừng ngay và trả lời bằng Final Answer từ chối lịch sự.
+- Nếu người dùng yêu cầu nhận xét miệt thị ngoại hình, phân biệt giới tính/tôn giáo/chủng tộc,
+  hoặc mẹo thao túng tâm lý (love bombing, lừa dối...), dùng Final Answer từ chối ngay,
+  KHÔNG gọi bất kỳ tool nào.
+- Nếu một Observation trả về bắt đầu bằng "LỖI:", KHÔNG lặp lại y hệt Action đó lần nữa.
+  Hãy dùng Final Answer để giải thích cho người dùng biết vì sao không thể thực hiện.
+
 BẮT ĐẦU:
 """
 
 # 🛡️ GUARDRAILS CONFIGURATION (PHANH AN TOÀN)
-MAX_ITERATIONS = 3  # Giới hạn tối đa 3 vòng lặp Thought-Action để tránh lặp vô tận
-TIMEOUT_SECONDS = 10  # Timeout cho mỗi lần gọi tool
+MAX_ITERATIONS = 4     # Cupid Agent có case cần 2 tool (vd search_candidates + suggest_date_plan) nên để dư 1 bước reasoning
+TIMEOUT_SECONDS = 10   # Timeout cho mỗi lần gọi tool
+
+
+# # 🛡️ GUARDRAILS CONFIGURATION (PHANH AN TOÀN)
+# MAX_ITERATIONS = 3  # Giới hạn tối đa 3 vòng lặp Thought-Action để tránh lặp vô tận
+# TIMEOUT_SECONDS = 10  # Timeout cho mỗi lần gọi tool
