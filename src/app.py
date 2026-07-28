@@ -146,24 +146,19 @@ if __name__ == "__main__":
     tests = load_test_cases()
     print(f"✅ Đã tải thành công {len(tests)} Test Cases từ config/test_cases.json\n")
     
-    # 3. Chọn 2 Test Cases đại diện (Test #1 đơn giản & Test #5 suy luận đa bước)
-    simple_test = tests[0]["question"]  # Test #1
-    multistep_test = tests[4]["question"]  # Test #5
-    
-    print("==========================================================")
-    print("DEMO 1: CHẠY TRÊN CÂU HỎI ĐƠN GIẢN (Test Case #1)")
-    print("==========================================================")
-    print("--- 💬 Baseline Chatbot ---")
-    run_baseline_chatbot(simple_test, provider)
-    
-    print("\n--- 🧠 Cupid ReAct Agent ---")
-    run_react_agent(simple_test, provider)
-    
-    print("\n==========================================================")
-    print("DEMO 2: CHẠY TRÊN CÂU HỎI CẦN TOOL & SUY LUẬN (Test Case #5)")
-    print("==========================================================")
-    print("--- 💬 Baseline Chatbot ---")
-    run_baseline_chatbot(multistep_test, provider)
-    
-    print("\n--- 🧠 Cupid ReAct Agent ---")
-    run_react_agent(multistep_test, provider)
+    # 3. Duyệt và chạy tất cả các Test Cases trong config/test_cases.json
+    for idx, test in enumerate(tests, 1):
+        category = test.get("category", "Test Case")
+        question = test.get("question", "")
+        
+        print(f"\n==========================================================")
+        print(f"🧪 TEST CASE #{idx}/{len(tests)} [{category}]")
+        print(f"==========================================================")
+        print(f"❓ Câu hỏi: {question}")
+        
+        print("\n--- 💬 Baseline Chatbot (Cấp 2) ---")
+        run_baseline_chatbot(question, provider)
+        
+        print("\n--- 🧠 Cupid ReAct Agent (Cấp 3) ---")
+        run_react_agent(question, provider)
+        print("----------------------------------------------------------")

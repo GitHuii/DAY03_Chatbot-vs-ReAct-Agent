@@ -195,19 +195,20 @@ def check_zodiac_compatibility(sign1: str, sign2: str) -> str:
     return json.dumps(result, ensure_ascii=False)
 
 
-def suggest_dating_spots(hobbies_list_str: str) -> str:
+def suggest_dating_spots(*hobbies_args) -> str:
     """
     Gợi ý các địa điểm hẹn hò lý tưởng dựa trên danh sách sở thích chung của hai người.
     
     Args:
-        hobbies_list_str (str): Chuỗi chứa các sở thích ngăn cách bởi dấu phẩy (ví dụ: 'nghe nhạc, xem phim')
+        *hobbies_args: Các sở thích (ví dụ: 'nghe nhạc, xem phim' hoặc 'nghe nhạc', 'xem phim')
         
     Returns:
         str: Chuỗi văn bản chứa danh sách các địa điểm hẹn hò gợi ý cụ thể.
     """
-    if not hobbies_list_str:
+    if not hobbies_args:
         return "Gợi ý chung: Một buổi tối cùng đi dạo Hồ Gươm và trò chuyện nhẹ nhàng."
         
+    hobbies_list_str = ", ".join([str(arg) for arg in hobbies_args if arg])
     hobbies = [h.strip().lower() for h in hobbies_list_str.split(",") if h.strip()]
     suggestions = []
     
