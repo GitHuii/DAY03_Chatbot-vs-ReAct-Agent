@@ -220,6 +220,11 @@ def suggest_dating_spots(*hobbies_args) -> str:
         str: Chuỗi văn bản chứa danh sách các địa điểm hẹn hò gợi ý cụ thể.
     """
     try:
+        if len(hobbies_args) == 1:
+            hobbies_list_str = hobbies_args[0]
+        else:
+            hobbies_list_str = hobbies_args
+            
         # Nếu Agent truyền vào list thay vì string, tự động gộp thành chuỗi chống crash
         if isinstance(hobbies_list_str, (list, tuple)):
             hobbies_list_str = ", ".join([str(item) for item in hobbies_list_str])
