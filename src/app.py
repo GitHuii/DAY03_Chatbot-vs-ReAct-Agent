@@ -139,21 +139,32 @@ def run_react_agent(user_query: str, provider):
     return final_response
 
 
-if __name__ == "__main__":
-    print("==========================================================")
-    print("💘 VINUNI AI IN ACTION - LAB 3: CUPID REACT AGENT DEMO")
-    print("==========================================================")
+def run_interactive_chat(provider):
+    """
+    Giao diện Terminal Chatbot tương tác trực tiếp với người dùng.
+    """
+    print("\n==========================================================")
+    print("💬 CHẾ ĐỘ TRÒ CHUYỆN TRỰC TIẾP VỚI CUPID REACT AGENT")
+    print("Nhập câu hỏi bất kỳ để trò chuyện. Gõ 'exit', 'quit' hoặc 'q' để thoát.")
+    print("==========================================================\n")
     
-    # 1. Khởi tạo Multi-Provider Adapter
-    provider = get_llm_provider()
-    model_name = getattr(provider, "model_name", "Offline Mock Mode")
-    print(f"🔌 LLM Provider đang hoạt động: {provider.__class__.__name__} (Model: {model_name})")
-    
-    # 2. Đọc danh sách Test Cases của Role 1
-    tests = load_test_cases()
-    print(f"✅ Đã tải thành công {len(tests)} Test Cases từ config/test_cases.json\n")
-    
-    # 3. Duyệt và chạy tất cả các Test Cases trong config/test_cases.json
+    while True:
+        try:
+            user_input = input("\n👤 Bạn: ").strip()
+            if not user_input:
+                continue
+            if user_input.lower() in ["exit", "quit", "q"]:
+                print("👋 Cảm ơn bạn đã sử dụng Cupid ReAct Agent! Tạm biệt!")
+                break
+                
+            run_react_agent(user_input, provider)
+        except (KeyboardInterrupt, EOFError):
+            print("\n👋 Đã thoát ứng dụng.")
+            break
+
+
+def run_all_test_cases(provider, tests):
+    """Chạy tự động toàn bộ test cases từ config/test_cases.json"""
     for idx, test in enumerate(tests, 1):
         category = test.get("category", "Test Case")
         question = test.get("question", "")
@@ -169,3 +180,34 @@ if __name__ == "__main__":
         print("\n--- 🧠 Cupid ReAct Agent (Cấp 3) ---")
         run_react_agent(question, provider)
         print("----------------------------------------------------------")
+
+
+if __name__ == "__main__":
+    print("==========================================================")
+    print("💘 VINUNI AI IN ACTION - LAB 3: CUPID REACT AGENT DEMO")
+    print("==========================================================")
+    
+    # 1. Khởi tạo Multi-Provider Adapter
+    provider = get_llm_provider()
+    model_name = getattr(provider, "model_name", "Offline Mock Mode")
+    print(f"🔌 LLM Provider đang hoạt động: {provider.__class__.__name__} (Model: {model_name})")
+    
+    # 2. Đọc danh sách Test Cases của Role 1
+    tests = load_test_cases()
+    print(f"✅ Đã tải thành công {len(tests)} Test Cases từ config/test_cases.json\n")
+    
+    # 3. Hiển thị Menu lựa chọn chế độ chạy
+    print("📌 VUI LÒNG CHỌN CHẾ ĐỘ CHẠY:")
+    print("  [1] 💬 Trò chuyện trực tiếp trên Terminal (Interactive Chatbot)")
+    print("  [2] 🧪 Chạy tự động bộ 10 Test Cases (Automated Evaluation)")
+    
+    # Nếu chạy script không tương tác (non-interactive / automated pipe), mặc định chọn 1
+    try:
+        choice = input("\n👉 Nhập lựa chọn (1 hoặc 2) [Mặc định: 1]: ").strip()
+    except EOFError:
+        choice = "1"
+        
+    if choice == "2":
+        run_all_test_cases(provider, tests)
+    else:
+        run_interactive_chat(provider)
